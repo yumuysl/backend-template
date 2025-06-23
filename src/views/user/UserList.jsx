@@ -90,7 +90,7 @@ export default function UserList() {
       }
     }
 
-    let url = `/admin/users?currentpage=${pagination.offset}&limit=${pagination.limit}`;
+    let url = `/admin/users?currentPage=${pagination.offset}&limit=${pagination.limit}+${params}`;
     axios
       .get(url)
       .then((res) => {
@@ -388,7 +388,7 @@ export default function UserList() {
       },
     },
     {
-      title: "用户邮箱",
+      title: "邮箱",
       key: "email",
       type: "input",
       handle: (e) => {
@@ -396,13 +396,13 @@ export default function UserList() {
       },
     },
     {
-      title: "用户角色",
+      title: "角色",
       key: "roleId",
       type: "select",
       options: roleList.map((item) => {
         return {
           value: item.id,
-          label: item.roleName,
+          label: item.name,
         };
       }),
       handle: (e) => {
