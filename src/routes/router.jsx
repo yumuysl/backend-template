@@ -1,69 +1,76 @@
-import { createBrowserRouter, Navigate, redirect } from "react-router";
+import { createBrowserRouter, Navigate, redirect } from 'react-router'
 
-import App from "../App";
-import Login from "../views/login/Login";
-import ErrorPage from "../components/ErrorPage";
-import Dashboard from "../views/dashboard/Dashboard";
+import App from '../App'
+import Login from '../views/login/Login'
+import ErrorPage from '../components/ErrorPage'
+import Dashboard from '../views/dashboard/Dashboard'
 
-import UserList from "../views/user/UserList";
-import AuthList from "../views/auth/AuthList";
-import RoleList from "../views/auth/RoleList";
+import UserList from '../views/user/UserList'
+import AuthList from '../views/auth/AuthList'
+import RoleList from '../views/auth/RoleList'
+import NoteList from '../views/note/NoteList'
 
 const userAllRoutes = [
   {
-    path: "/dashboard",
+    path: '/dashboard',
     element: <Dashboard />,
   },
   {
-    path: "/user/list",
+    path: '/note/list',
+    element: <NoteList />,
+  },
+  {
+    path: '/user/list',
     element: <UserList />,
-  },{
-    path: "/auth/list",
+  },
+  {
+    path: '/auth/list',
     element: <AuthList />,
   },
   {
-    path: "/role/list",
-    element: <RoleList />, 
-  }
+    path: '/role/list',
+    element: <RoleList />,
+  },
 ]
 
-let filterRoutes = userAllRoutes.filter(item => true)
+let filterRoutes = userAllRoutes.filter(() => true)
 
 const router = createBrowserRouter([
   {
-    path: "/login",
+    path: '/login',
     element: <Login />,
     loader: () => {
-      const token = localStorage.getItem("token");
-      if(token){
-        return redirect("/dashboard");
+      const token = localStorage.getItem('token')
+      if (token) {
+        return redirect('/dashboard')
       }
       return null
     },
   },
   {
-    path: "/",
+    path: '/',
     element: <App />,
     loader: () => {
-      const token = localStorage.getItem("token"); 
-      if(!token){
-        return redirect("/login"); 
+      const token = localStorage.getItem('token')
+      if (!token) {
+        return redirect('/login')
       }
       return null
     },
     children: filterRoutes,
   },
   {
-    path: "*",
-    element: <ErrorPage errorCode={404}  />,
+    path: '*',
+    element: <ErrorPage errorCode={404} />,
     loader: () => {
-      const token = localStorage.getItem("token"); 
-      if(!token){
-        return redirect("/login"); 
+      const token = localStorage.getItem('token')
+      if (!token) {
+        return redirect('/login')
       }
       return null
-    }
-  }
-]);
+    },
+  },
+])
 
-export default router;
+export default router
+

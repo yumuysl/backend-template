@@ -39,31 +39,19 @@ const pageStyle = {
   },
 }
 
-//ID、用户名、用户邮箱、用户角色、用户状态、创建时间、更新时间、操作
+//ID、标题、作者、标签、内容、创建时间、更新时间、操作
 const menuItems = [
   {
     label: '编辑',
     key: 'editItem',
   },
-  {
-    label: '重置密码',
-    key: 'resetPassword',
-  },
-  {
-    label: '禁用',
-    key: 'N',
-  },
-  {
-    label: '启用',
-    key: 'Y',
-  },
 ]
 
-export default function UserList() {
-  const [userList, setUserList] = useState([])
+export default function NoteList() {
+  const [noteList, setUserList] = useState([])
   const [currentItem, setCurrentItem] = useState({})
   const [editPopFlag, setEditPopFlag] = useState(false)
-  const [roleList, setRoleList] = useState([])
+  const [roleList, setRoleList] = useState([]) //TODO:待替换或删除
   const [addPopFlag, setAddPopFlag] = useState(false)
   const [filters, setFilters] = useState({
     username: '',
@@ -90,7 +78,7 @@ export default function UserList() {
       }
     }
 
-    let url = `/admin/users?currentPage=${pagination.offset}&limit=${pagination.limit}+${params}`
+    let url = `/admin/notes?currentPage=${pagination.offset}&limit=${pagination.limit}+${params}`
     axios
       .get(url)
       .then((res) => {
@@ -111,10 +99,11 @@ export default function UserList() {
         }
       })
       .catch((err) => {
-        console.log('用户数据', err)
+        console.log('笔记数据异常，原因：', err)
       })
   }, [filters, pagination])
 
+  //TODO:待替换或删除
   const getRoleList = useCallback(() => {
     axios
       .get('/admin/roles')
@@ -147,39 +136,34 @@ export default function UserList() {
       fixed: 'left',
     },
     {
-      title: '用户名',
+      title: '标题',
       width: '100px',
-      dataIndex: 'username',
-      key: 'username',
+      dataIndex: 'title',
+      key: 'title',
     },
     {
-      title: '昵称',
+      title: '作者',
       width: '100px',
-      dataIndex: 'nickname',
-      key: 'nickname',
+      dataIndex: 'author',
+      key: 'author',
     },
     {
-      title: '用户邮箱',
+      title: '标签',
       width: '100px',
-      dataIndex: 'email',
-      key: 'email',
-    },
-    {
-      title: '用户角色',
-      width: '100px',
-      dataIndex: 'role',
-      key: 'role',
-      render: (role) => {
-        return role ? role.name : ''
+      dataIndex: 'to_tag',
+      key: 'to_tag',
+      render: (tag) => {
+        return tag //TODO:暂定，需要根据字段完成背景颜色和内容
       },
     },
     {
-      title: '用户状态',
+      title: '内容',
       width: '100px',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => {
-        return status === 'Y' ? '正常' : '禁用'
+      dataIndex: 'content',
+      key: 'content',
+      render: (role) => {
+        //FIX:点击查看内容
+        return role ? role.name : ''
       },
     },
     {
@@ -226,24 +210,13 @@ export default function UserList() {
     },
   ]
 
+  //WARN:需要调整
   const clickMenu = (key, item) => {
     console.log(key)
     if (key === 'editItem') {
       console.log('编辑条目', item)
       setCurrentItem({ ...item })
       setEditPopFlag(true)
-    }
-    if (key === 'resetPassword') {
-      console.log('重置密码', item)
-      resetPassword(item)
-    }
-    if (key === 'N') {
-      console.log('禁用', item)
-      changeStatus('N', item)
-    }
-    if (key === 'Y') {
-      console.log('启用', item)
-      changeStatus('Y', item)
     }
   }
 
@@ -257,10 +230,10 @@ export default function UserList() {
   const saveEditPop = () => {
     console.log('保存', currentItem)
     axios
-      .put('/admin/users/' + currentItem.id, {
-        nickname: currentItem.nickname,
-        email: currentItem.email,
-        role_id: currentItem.role_id,
+      .put('/admin/notes/' + currentItem.id, {
+        title: currentItem.title,
+        content: currentItem.content,
+        to_tag: currentItem.to_tag,
       })
       .then((res) => {
         console.log('保存成功', res)
@@ -283,87 +256,47 @@ export default function UserList() {
       })
   }
 
-  //重置密码
-  const resetPassword = (item) => {
-    const handleReset = () => {
-      axios
-        .put('/admin/users/password/' + item.id, {
-          password1: '123456',
-          password2: '123456',
-        })
-        .then(() => {
-          messageApi.open({
-            type: 'success',
-            content: '操作成功',
-            duration: 2,
-          })
-        })
-        .catch((err) => {
-          messageApi.open({
-            type: 'error',
-            content: '操作失败，原因：' + err.msg,
-            duration: 2,
-          })
-        })
-    }
-
-    confirm({
-      title: '是否重置用户密码？',
-      icon: <ExclamationCircleFilled />,
-      content: '请谨慎操作',
-      okText: '确认',
-      cancelText: '取消',
-      centered: true,
-      onOk() {
-        handleReset()
-      },
-      onCancel() {
-        console.log('取消')
-      },
-    })
-  }
-
-  //启用/禁用
-  const changeStatus = (status, item) => {
-    console.log('启用/禁用', status, item)
-
-    const changeStatusApi = (status, item) => {
-      axios
-        .put('/admin/users/' + item.id, { status })
-        .then((res) => {
-          console.log('启用/禁用成功', res)
-          messageApi.open({
-            type: 'success',
-            content: '操作成功',
-            duration: 2,
-          })
-          getListData()
-        })
-        .catch((err) => {
-          console.log('启用/禁用失败', err)
-          messageApi.open({
-            type: 'error',
-            content: '操作失败',
-            duration: 2,
-          })
-        })
-    }
-
-    confirm({
-      title: '确认更改该用户状态?',
-      icon: <ExclamationCircleFilled />,
-      content: '请谨慎操作',
-      okText: '确认',
-      cancelText: '取消',
-      centered: true,
-      onOk() {
-        changeStatusApi(status, item)
-      },
-      onCancel() {
-        console.log('取消')
-      },
-    })
-  }
+  //启用/禁用  TODO:当添加了笔记审核后处理
+  // const changeStatus = (status, item) => {
+  //   console.log('启用/禁用', status, item)
+  //
+  //   const changeStatusApi = (status, item) => {
+  //     axios
+  //       .put('/admin/users/' + item.id, { status })
+  //       .then((res) => {
+  //         console.log('启用/禁用成功', res)
+  //         messageApi.open({
+  //           type: 'success',
+  //           content: '操作成功',
+  //           duration: 2,
+  //         })
+  //         getListData()
+  //       })
+  //       .catch((err) => {
+  //         console.log('启用/禁用失败', err)
+  //         messageApi.open({
+  //           type: 'error',
+  //           content: '操作失败',
+  //           duration: 2,
+  //         })
+  //       })
+  //   }
+  //
+  //   confirm({
+  //     title: '确认更改该用户状态?',
+  //     icon: <ExclamationCircleFilled />,
+  //     content: '请谨慎操作',
+  //     okText: '确认',
+  //     cancelText: '取消',
+  //     centered: true,
+  //     onOk() {
+  //       changeStatusApi(status, item)
+  //     },
+  //     onCancel() {
+  //       console.log('取消')
+  //     },
+  //   })
+  // }
 
   //新增
   const openAddPop = () => {
@@ -384,26 +317,19 @@ export default function UserList() {
   //过滤
   const filtersList = [
     {
-      title: '用户名',
-      key: 'username',
+      title: '标题',
+      key: 'title',
       type: 'input',
       handle: (e) => {
-        setFilters({ ...filters, username: e })
+        setFilters({ ...filters, title: e })
       },
     },
     {
-      title: '邮箱',
-      key: 'email',
-      type: 'input',
-      handle: (e) => {
-        setFilters({ ...filters, email: e })
-      },
-    },
-    {
-      title: '角色',
-      key: 'roleId',
+      title: '标签',
+      key: 'to_tag',
       type: 'select',
       options: roleList.map((item) => {
+        //FIX:待修改
         return {
           value: item.id,
           label: item.name,
@@ -411,18 +337,6 @@ export default function UserList() {
       }),
       handle: (e) => {
         setFilters({ ...filters, role_id: e })
-      },
-    },
-    {
-      title: '用户状态',
-      key: 'status',
-      type: 'select',
-      options: [
-        { value: 'Y', label: '正常' },
-        { value: 'N', label: '禁用' },
-      ],
-      handle: (e) => {
-        setFilters({ ...filters, status: e })
       },
     },
   ]
@@ -435,15 +349,15 @@ export default function UserList() {
     console.log('currentItem', currentItem)
     if (Object.keys(currentItem).length > 0 && (editPopFlag || addPopFlag)) {
       form.setFieldsValue({
-        nickname: currentItem.nickname,
-        email: currentItem.email,
-        role: currentItem.role && currentItem.role.name,
+        title: currentItem.title,
+        content: currentItem.content,
+        to_tag: currentItem.tag && currentItem.tag.name,
       })
     } else {
       form.setFieldsValue({
-        nickname: '',
-        email: '',
-        role: '',
+        title: '',
+        content: '',
+        to_tag: '',
       })
     }
   }, [currentItem, editPopFlag, addPopFlag])
@@ -468,7 +382,7 @@ export default function UserList() {
           <Table
             rowKey={(record) => record.id}
             columns={columns}
-            dataSource={userList}
+            dataSource={noteList}
             pagination={{
               position: ['bottomCenter'],
               current: pagination.offset,
@@ -498,7 +412,7 @@ export default function UserList() {
         </ConfigProvider>
       </div>
       <Modal
-        title="编辑用户"
+        title="编辑笔记"
         open={editPopFlag}
         okText="保存"
         cancelText="取消"
@@ -506,45 +420,45 @@ export default function UserList() {
         onOk={() => saveEditPop()}
       >
         <Form
-          name="editUser"
+          name="editNote"
           form={form}
           layout={{ layout: 'Vertical' }}
           labelCol={{ span: 8 }}
           wrapperCol={{ span: 16 }}
         >
           <Form.Item
-            label="昵称"
-            name="nickname"
+            label="标题"
+            name="title"
             rules={[{ required: true, message: '请输入昵称!' }]}
-            initialValue={currentItem.nickname}
+            initialValue={currentItem.title}
             onChange={(e) => {
-              setCurrentItem({ ...currentItem, nickname: e.target.value })
+              setCurrentItem({ ...currentItem, title: e.target.value })
             }}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            label="邮箱"
-            name="email"
-            rules={[{ required: true, message: '请输入用户邮箱!' }]}
-            initialValue={currentItem.email}
+            label="内容"
+            name="content"
+            rules={[{ required: true, message: '请输入笔记内容!' }]}
+            initialValue={currentItem.content}
             onChange={(e) => {
-              setCurrentItem({ ...currentItem, email: e.target.value })
+              setCurrentItem({ ...currentItem, content: e.target.value })
             }}
           >
             <Input />
           </Form.Item>
           <Form.Item
-            label="角色"
-            name="role"
-            rules={[{ required: true, message: '请选择用户角色!' }]}
-            initialValue={currentItem.role ? currentItem.role.name : ''}
+            label="标签"
+            name="tag"
+            rules={[{ required: true, message: '请选择笔记所属标签!' }]}
+            initialValue={currentItem.tag ? currentItem.tag.name : ''}
             onChange={(e) => {
               console.log(e)
               setCurrentItem({
                 ...currentItem,
-                role: roleList.find((item) => item.id === e.target.value),
-                role_id: e.target.value,
+                tag: roleList.find((item) => item.id === e.target.value), //FIX:待修复
+                to_tag: e.target.value,
               })
             }}
           >
@@ -568,72 +482,72 @@ export default function UserList() {
         </Form>
       </Modal>
 
-      <Modal
-        title="添加用户"
-        open={addPopFlag}
-        okText="保存"
-        cancelText="取消"
-        onCancel={() => cancleAddPop()}
-        onOk={() => handleAddUser()}
-      >
-        <Form
-          name="addUser"
-          form={form}
-          layout={{ layout: 'Vertical' }}
-          labelCol={{ span: 8 }}
-          wrapperCol={{ span: 16 }}
-        >
-          <Form.Item
-            label="昵称"
-            name="nickname"
-            rules={[{ required: true, message: '请输入昵称!' }]}
-            onChange={(e) =>
-              setCurrentItem({ ...currentItem, nickname: e.target.value })
-            }
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label="用户邮箱"
-            name="email"
-            rules={[{ required: true, message: '请输入用户邮箱!' }]}
-            onChange={(e) => {
-              setCurrentItem({ ...currentItem, email: e.target.value })
-            }}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label="用户角色"
-            name="role"
-            rules={[{ required: true, message: '请选择用户角色!' }]}
-            onChange={(e) => {
-              setCurrentItem({
-                ...currentItem,
-                role: roleList.find((item) => item.id === e.target.value),
-                role_id: e.target.value,
-              })
-            }}
-          >
-            <Select
-              options={roleList.map((item) => {
-                return {
-                  value: item.id,
-                  label: item.name,
-                }
-              })}
-              onChange={(e) => {
-                console.log(e)
-                setCurrentItem({
-                  ...currentItem,
-                  role: roleList.find((item) => item.id === e),
-                  role_id: e,
-                })
-              }}
-            />
-          </Form.Item>
-        </Form>
-      </Modal>
+      {/* <Modal */}
+      {/*   title="添加用户" */}
+      {/*   open={addPopFlag} */}
+      {/*   okText="保存" */}
+      {/*   cancelText="取消" */}
+      {/*   onCancel={() => cancleAddPop()} */}
+      {/*   onOk={() => handleAddUser()} */}
+      {/* > */}
+      {/*   <Form */}
+      {/*     name="addUser" */}
+      {/*     form={form} */}
+      {/*     layout={{ layout: 'Vertical' }} */}
+      {/*     labelCol={{ span: 8 }} */}
+      {/*     wrapperCol={{ span: 16 }} */}
+      {/*   > */}
+      {/*     <Form.Item */}
+      {/*       label="昵称" */}
+      {/*       name="nickname" */}
+      {/*       rules={[{ required: true, message: '请输入昵称!' }]} */}
+      {/*       onChange={(e) => */}
+      {/*         setCurrentItem({ ...currentItem, nickname: e.target.value }) */}
+      {/*       } */}
+      {/*     > */}
+      {/*       <Input /> */}
+      {/*     </Form.Item> */}
+      {/*     <Form.Item */}
+      {/*       label="用户邮箱" */}
+      {/*       name="email" */}
+      {/*       rules={[{ required: true, message: '请输入用户邮箱!' }]} */}
+      {/*       onChange={(e) => { */}
+      {/*         setCurrentItem({ ...currentItem, email: e.target.value }) */}
+      {/*       }} */}
+      {/*     > */}
+      {/*       <Input /> */}
+      {/*     </Form.Item> */}
+      {/*     <Form.Item */}
+      {/*       label="用户角色" */}
+      {/*       name="role" */}
+      {/*       rules={[{ required: true, message: '请选择用户角色!' }]} */}
+      {/*       onChange={(e) => { */}
+      {/*         setCurrentItem({ */}
+      {/*           ...currentItem, */}
+      {/*           role: roleList.find((item) => item.id === e.target.value), */}
+      {/*           role_id: e.target.value, */}
+      {/*         }) */}
+      {/*       }} */}
+      {/*     > */}
+      {/*       <Select */}
+      {/*         options={roleList.map((item) => { */}
+      {/*           return { */}
+      {/*             value: item.id, */}
+      {/*             label: item.name, */}
+      {/*           } */}
+      {/*         })} */}
+      {/*         onChange={(e) => { */}
+      {/*           console.log(e) */}
+      {/*           setCurrentItem({ */}
+      {/*             ...currentItem, */}
+      {/*             role: roleList.find((item) => item.id === e), */}
+      {/*             role_id: e, */}
+      {/*           }) */}
+      {/*         }} */}
+      {/*       /> */}
+      {/*     </Form.Item> */}
+      {/*   </Form> */}
+      {/* </Modal> */}
     </div>
   )
 }

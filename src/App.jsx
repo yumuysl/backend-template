@@ -1,10 +1,9 @@
-import React from "react"
-import { Outlet } from "react-router";
-import { Layout } from "antd";
+import { Outlet } from 'react-router'
+import { Layout } from 'antd'
 
-const { Header, Footer, Sider, Content } = Layout;
-import SideMenu from "./components/layout/SideMenu";
-import TopHeader from "./components/layout/TopHeader";
+const { Header, Sider, Content } = Layout
+import SideMenu from './components/layout/SideMenu'
+import TopHeader from './components/layout/TopHeader'
 
 const pageStyle = {
   headerStyle: {
@@ -13,7 +12,7 @@ const pageStyle = {
     minHeight: '56px',
     color: '#fff',
     padding: '0',
-    backgroundColor: 'red'
+    backgroundColor: 'red',
   },
   contentStyle: {
     minHeight: 120,
@@ -30,8 +29,8 @@ const pageStyle = {
   layoutStyle: {
     overflow: 'hidden',
     width: '100%',
-    height: '100vh'
-  }
+    height: '100vh',
+  },
 }
 
 export default function App() {
@@ -53,4 +52,3 @@ export default function App() {
     </Layout>
   )
 }
-
