@@ -48,16 +48,14 @@ const menuItems = [
 ]
 
 export default function NoteList() {
-  const [noteList, setUserList] = useState([])
+  const [noteList, setNoteList] = useState([])
   const [currentItem, setCurrentItem] = useState({})
   const [editPopFlag, setEditPopFlag] = useState(false)
-  const [roleList, setRoleList] = useState([]) //TODO:待替换或删除
+  const [tagList, setTagList] = useState([])
   const [addPopFlag, setAddPopFlag] = useState(false)
   const [filters, setFilters] = useState({
-    username: '',
-    roleId: '',
-    status: '',
-    email: '',
+    title: '',
+    to_tag: '',
   })
   const [pagination, setPagination] = useState({
     offset: 1,
@@ -78,14 +76,14 @@ export default function NoteList() {
       }
     }
 
-    let url = `/admin/notes?currentPage=${pagination.offset}&limit=${pagination.limit}+${params}`
+    let url = `/admin/notes?currentPage=${pagination.offset}&limit=${pagination.limit}${params}`
     axios
       .get(url)
       .then((res) => {
         let resData = res.data
         console.log('列表：', resData)
         console.log('分页：', pagination)
-        setUserList(resData.data.data)
+        setNoteList(resData.data.data)
         if (resData.data.total !== pagination.total) {
           setPagination({
             ...pagination,
@@ -103,13 +101,12 @@ export default function NoteList() {
       })
   }, [filters, pagination])
 
-  //TODO:待替换或删除
-  const getRoleList = useCallback(() => {
+  const getTagList = useCallback(() => {
     axios
-      .get('/admin/roles')
+      .get('/admin/tags')
       .then((res) => {
-        console.log('角色数据', res.data)
-        setRoleList(res.data.data.data)
+        console.log('标签数据', res.data)
+        setTagList(res.data.data.data)
       })
       .catch((err) => {
         console.log('数据获取失败', err)
@@ -117,14 +114,14 @@ export default function NoteList() {
   }, [])
 
   useEffect(() => {
-    Promise.all([getListData(), getRoleList()])
+    Promise.all([getListData(), getTagList()])
       .then((res) => {
         console.log('获取数据成功', res)
       })
       .catch((err) => {
         console.log('获取数据失败', err)
       })
-  }, [getListData, getRoleList])
+  }, [getListData, getTagList])
 
   const columns = [
     {
@@ -144,16 +141,19 @@ export default function NoteList() {
     {
       title: '作者',
       width: '100px',
-      dataIndex: 'author',
+      dataIndex: 'user',
       key: 'author',
+      render: (author) => {
+        return author && author.username
+      },
     },
     {
       title: '标签',
       width: '100px',
-      dataIndex: 'to_tag',
+      dataIndex: 'tag',
       key: 'to_tag',
       render: (tag) => {
-        return tag //TODO:暂定，需要根据字段完成背景颜色和内容
+        return tag && tag.name
       },
     },
     {
@@ -161,10 +161,6 @@ export default function NoteList() {
       width: '100px',
       dataIndex: 'content',
       key: 'content',
-      render: (role) => {
-        //FIX:点击查看内容
-        return role ? role.name : ''
-      },
     },
     {
       title: '创建时间',
@@ -210,7 +206,6 @@ export default function NoteList() {
     },
   ]
 
-  //WARN:需要调整
   const clickMenu = (key, item) => {
     console.log(key)
     if (key === 'editItem') {
@@ -328,21 +323,20 @@ export default function NoteList() {
       title: '标签',
       key: 'to_tag',
       type: 'select',
-      options: roleList.map((item) => {
-        //FIX:待修改
+      options: tagList.map((item) => {
         return {
           value: item.id,
           label: item.name,
         }
       }),
       handle: (e) => {
-        setFilters({ ...filters, role_id: e })
+        setFilters({ ...filters, to_tag: e })
       },
     },
   ]
 
   const resetFilters = () => {
-    setFilters({ username: '', roleId: '', status: '', email: '' })
+    setFilters({ title: '', to_tag: null })
   }
 
   useEffect(() => {
@@ -457,13 +451,13 @@ export default function NoteList() {
               console.log(e)
               setCurrentItem({
                 ...currentItem,
-                tag: roleList.find((item) => item.id === e.target.value), //FIX:待修复
+                tag: tagList.find((item) => item.id === e.target.value),
                 to_tag: e.target.value,
               })
             }}
           >
             <Select
-              options={roleList.map((item) => {
+              options={tagList.map((item) => {
                 return {
                   value: item.id,
                   label: item.name,
@@ -473,8 +467,8 @@ export default function NoteList() {
                 console.log(e)
                 setCurrentItem({
                   ...currentItem,
-                  role: roleList.find((item) => item.id === e),
-                  role_id: e,
+                  tag: tagList.find((item) => item.id === e),
+                  to_tag: e,
                 })
               }}
             />
@@ -518,19 +512,19 @@ export default function NoteList() {
       {/*       <Input /> */}
       {/*     </Form.Item> */}
       {/*     <Form.Item */}
-      {/*       label="用户角色" */}
+      {/*       label="用户标签" */}
       {/*       name="role" */}
-      {/*       rules={[{ required: true, message: '请选择用户角色!' }]} */}
+      {/*       rules={[{ required: true, message: '请选择用户标签!' }]} */}
       {/*       onChange={(e) => { */}
       {/*         setCurrentItem({ */}
       {/*           ...currentItem, */}
-      {/*           role: roleList.find((item) => item.id === e.target.value), */}
+      {/*           role: tagList.find((item) => item.id === e.target.value), */}
       {/*           role_id: e.target.value, */}
       {/*         }) */}
       {/*       }} */}
       {/*     > */}
       {/*       <Select */}
-      {/*         options={roleList.map((item) => { */}
+      {/*         options={tagList.map((item) => { */}
       {/*           return { */}
       {/*             value: item.id, */}
       {/*             label: item.name, */}
@@ -540,7 +534,7 @@ export default function NoteList() {
       {/*           console.log(e) */}
       {/*           setCurrentItem({ */}
       {/*             ...currentItem, */}
-      {/*             role: roleList.find((item) => item.id === e), */}
+      {/*             role: tagList.find((item) => item.id === e), */}
       {/*             role_id: e, */}
       {/*           }) */}
       {/*         }} */}
