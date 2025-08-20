@@ -1,0 +1,55 @@
+.toolbar {
+  display: flex;
+  margin-bottom: 1px;
+  background: #fff;
+  padding: 4px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  vertical-align: middle;
+}
+
+.toolbar .divider {
+  width: 1px;
+  background-color: #eee;
+  margin: 0 4px;
+}
+
+i.undo {
+  background-image: url(icons/arrow-counterclockwise.svg);
+}
+
+i.redo {
+  background-image: url(icons/arrow-clockwise.svg);
+}
+
+i.bold {
+  background-image: url(icons/type-bold.svg);
+}
+
+i.italic {
+  background-image: url(icons/type-italic.svg);
+}
+
+i.underline {
+  background-image: url(icons/type-underline.svg);
+}
+
+i.strikethrough {
+  background-image: url(icons/type-strikethrough.svg);
+}
+
+i.left-align {
+  background-image: url(icons/text-left.svg);
+}
+
+i.center-align {
+  background-image: url(icons/text-center.svg);
+}
+
+i.right-align {
+  background-image: url(icons/text-right.svg);
+}
+
+i.justify-align {
+  background-image: url(icons/justify.svg);
+}
